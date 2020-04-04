@@ -1,13 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import './index.css';
-import App from './components/App';
 import * as serviceWorker from './serviceWorker';
+import { Provider } from "react-redux";
+import store from "./components/Redux/store/index";
+import App from './components/App';
+import Firebase, { FirebaseContext} from './components/Firebase';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <Provider store={store}>
+    <FirebaseContext.Provider value={new Firebase()}>
+      <App />
+    </FirebaseContext.Provider>
+  </Provider>,
   document.getElementById('root')
 );
 
