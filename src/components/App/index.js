@@ -1,7 +1,5 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom'
-import { connect } from "react-redux";
-import { addAuth } from "../Redux/actions/index";
 import Navigation from '../Navigation'
 import LandingPage from '../Landing';
 import SignUpPage from '../SignUp';
@@ -10,36 +8,25 @@ import PasswordForgetPage from '../PasswordForget';
 import HomePage from '../Home';
 import AccountPage from '../Account';
 import AdminPage from '../Admin';
+import { useSelector, useDispatch } from 'react-redux'
+
 
 import * as ROUTES from '../../constants/routes';
-import { withFirebase } from '../Firebase';
+import * as actions from '../Redux/actions'
 
-function mapDispatchToProps(dispatch) {
-    return {
-      addAuth: authUser => dispatch(addAuth(authUser))
-    };
-  }
+const App = () => {
+    const firebase = useSelector(store => store.firebase);
+    const dispatch = useDispatch()
 
-class ConnectedApp extends Component {
-    constructor(props) {
-      super(props);
-    }
-
-    componentDidMount(){
-        this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
-            authUser
-                ? this.props.addAuth({ authUser})
-                : this.props.addAuth({ authUser: null });
-        },);
-    }
-
-    componentWillUnmount() {
-        this.listener();
-      }
+    useEffect(() => {
+        firebase.auth.onAuthStateChanged(authUser => {
+        authUser
+            ? dispatch(actions.addAuth(authUser))
+            : dispatch(actions.addAuth(null))
+    },);
+    })
     
-
-    render() {
-        return (
+    return (
             <Router>
                 <div>
                     <Navigation />
@@ -54,12 +41,7 @@ class ConnectedApp extends Component {
                 </div>
             </Router>  
         )
-    }  
-}
+    }
 
-const App = connect(
-    null,
-    mapDispatchToProps
-  )(ConnectedApp);
 
-export default withFirebase(App);
+export default App;

@@ -1,12 +1,13 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
-import { withFirebase } from '../Firebase';
 import * as ROUTES from '../../constants/routes';
 import { connect } from 'react-redux'
 
 const mapStateToProps = state => {
-    return { authUser: state.authUser };
+    return { authUser: state.authUser ,
+      firebase: state.firebase
+    };
   };
 
 const withAuthorization = condition => Component => {
@@ -40,7 +41,6 @@ const withAuthorization = condition => Component => {
 
   return compose(
     withRouter,
-    withFirebase,
   )(withAuthorizationConnected);
 
 };

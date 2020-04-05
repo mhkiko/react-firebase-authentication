@@ -1,42 +1,39 @@
-import React, { Component } from 'react';
-import { withFirebase } from '../Firebase';
-class AdminPage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: false,
-      users: [],
-    };
-  }
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux'
 
-  componentDidMount() {
-    this.setState({ loading: true });
-    this.props.firebase.users().on('value', snapshot => {
+
+const AdminPage = () => {
+  const [loading, setLoading] = useState(false)
+  const [users, setUsers] = useState([])
+  const firebase = useSelector(state => state.firebase)
+
+  useEffect(() => {
+    if (!loading) setLoading({ loading: true });
+    firebase.users().on('value', snapshot => {
       const usersObject = snapshot.val();
       const usersList = Object.keys(usersObject).map(key => ({
         ...usersObject[key],
         uid: key,
       }));
-      this.setState({
-        users: usersList,
-        loading: false,
-      });
+      setLoading(false);
+      setUsers(usersList)
     });
-  }
 
-  componentWillUnmount() {
-    this.props.firebase.users().off();
-  }
-  render() {
-    const { users, loading } = this.state;
-    return (
+    return () => {
+      firebase.users().off();
+    }
+    
+
+  }, [])
+
+  return (
       <div>
         <h1>Admin</h1>
         {loading && <div>Loading ...</div>}
         <UserList users={users} />
       </div>
     );
-  }
+  
 }
 
 const UserList = ({ users }) => (
@@ -57,4 +54,4 @@ const UserList = ({ users }) => (
   </ul>
 );
 
-export default withFirebase(AdminPage);
+export default AdminPage;

@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { withFirebase } from '../Firebase';
 import * as ROUTES from '../../constants/routes';
+import { useSelector } from 'react-redux'
+
 
 const PasswordForgetPage = () => (
   <div>
@@ -15,48 +16,47 @@ const INITIAL_STATE = {
   error: null,
 };
 
-class PasswordForgetFormBase extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { ...INITIAL_STATE };
-  }
+const PasswordForgetForm = () => {
+  const [state, setState] = useState({ ...INITIAL_STATE})
+  const firebase = useSelector(state => state.firebase)
+  const [isInvalid, setIsInvalid] = useState(true)
 
-  onSubmit = event => {
-    const { email } = this.state;
-    this.props.firebase
+  const onSubmit = event => {
+    const { email } = state;
+    firebase
       .doPasswordReset(email)
       .then(() => {
-        this.setState({ ...INITIAL_STATE });
+        setState({ ...INITIAL_STATE });
       })
       .catch(error => {
-        this.setState({ error });
+        setState({...state, error: error });
       });
     event.preventDefault();
   };
 
-  onChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
+  const onChange = event => {
+    setState({...state, [event.target.name]: event.target.value });
   };
 
-  render() {
-    const { email, error } = this.state;
-    const isInvalid = email === '';
+  useEffect(() => {
+    setIsInvalid(state.email === '')
+  })
     return (
-      <form onSubmit={this.onSubmit}>
+      <form onSubmit={onSubmit}>
         <input
           name="email"
-          value={this.state.email}
-          onChange={this.onChange}
+          value={state.email}
+          onChange={onChange}
           type="text"
           placeholder="Email Address"
         />
         <button disabled={isInvalid} type="submit">
           Reset My Password
         </button>
-        {error && <p>{error.message}</p>}
+        {state.error && <p>{state.error.message}</p>}
       </form>
     );
-  }
+  
 }
 
 const PasswordForgetLink = () => (
@@ -66,5 +66,4 @@ const PasswordForgetLink = () => (
 );
 
 export default PasswordForgetPage;
-const PasswordForgetForm = withFirebase(PasswordForgetFormBase);
 export { PasswordForgetForm, PasswordForgetLink };

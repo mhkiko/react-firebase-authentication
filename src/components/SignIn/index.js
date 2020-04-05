@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
 import { SignUpLink } from '../SignUp';
 import { PasswordForgetLink } from '../PasswordForget';
-import { withFirebase } from '../Firebase';
 import * as ROUTES from '../../constants/routes';
+import { useSelector } from 'react-redux'
+
 
 const SignInPage = () => (
   <div>
@@ -21,61 +22,58 @@ const INITIAL_STATE = {
   error: null,
 };
 
-class SignInFormBase extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { ...INITIAL_STATE };
-  }
- 
-  onSubmit = event => {
-    const { email, password } = this.state;
-    this.props.firebase
+
+
+const SignInFormBase = (props) => {
+  const firebase = useSelector(store => store.firebase);
+  const [state, setState] = useState( {...INITIAL_STATE} );
+
+  const onSubmit = event => {
+    const { email, password } = state;
+    firebase
       .doSignInWithEmailAndPassword(email, password)
       .then(() => {
-        this.setState({ ...INITIAL_STATE });
-        this.props.history.push(ROUTES.HOME);
+        setState({ ...INITIAL_STATE });
+        props.history.push(ROUTES.HOME);
       })
       .catch(error => {
-        this.setState({ error });
+        setState({ error });
       });
     event.preventDefault();
   };
 
-  onChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
+  const onChange = event => {
+    setState ({...state, [event.target.name]: event.target.value })
   };
   
-  render() {
-    const { email, password, error } = this.state;
-    const isInvalid = password === '' || email === '';
+    //const { email, password, error } = state;
+    const isInvalid = state.password === '' || state.email === '';
     return (
-      <form onSubmit={this.onSubmit}>
+      <form onSubmit={onSubmit}>
         <input
           name="email"
-          value={email}
-          onChange={this.onChange}
+          value={state.email}
+          onChange={onChange}
           type="text"
           placeholder="Email Address"
         />
         <input
           name="password"
-          value={password}
-          onChange={this.onChange}
+          value={state.password}
+          onChange={onChange}
           type="password"
           placeholder="Password"
         />
         <button disabled={isInvalid} type="submit">
           Sign In
         </button>
-        {error && <p>{error.message}</p>}
+        {state.error && <p>{state.error.message}</p>}
       </form>
     );
-  }
 }
 
 const SignInForm = compose(
   withRouter,
-  withFirebase,
 )(SignInFormBase);
 
 export default SignInPage;
